@@ -26,11 +26,28 @@ app.use(cors()) //add CORS support to each following route handler
 const client = new Client(dbConfig);
 client.connect();
 
+
 app.get("/", async (req, res) => {
-  const dbres = await client.query('select * from categories');
+  const dbres = await client.query('select breed, sum(vote_count) as sumvote_count from vote  group by breed order by sumvote_count desc limit 10');
+
   res.json(dbres.rows);
 });
 
+app.post("/", async (req, res) => {
+  const url = req.body.message
+  const breedAndSubBreed = url.match(/.*\/(.*)\/(.*)$/)[1]
+  let breed;
+  let subBreed;
+  if (breedAndSubBreed.includes('-')){
+     breed = breedAndSubBreed.match(/.*(?=-)/)[0]
+     subBreed = breedAndSubBreed.match(/(?<=-).*/)[0]
+  } else {
+     breed = breedAndSubBreed
+     subBreed = ''
+  }
+  const dbres = await client.query('insert into vote (breed, sub_breed, image_url,vote_count) values($1,$2,$3,$4)',[breed,subBreed,url,0]);
+  res.json(dbres.rows);
+});
 
 //Start the server on the given port
 const port = process.env.PORT;
