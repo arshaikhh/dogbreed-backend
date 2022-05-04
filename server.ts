@@ -49,19 +49,20 @@ function urlExtracting(url:string):string[] {
 
 app.post("/", async (req, res) => {
   const url = req.body.message
-  const isPresent = await client.query('SELECT CASE WHEN EXISTS (SELECT * FROM vote WHERE image_url = $1)THEN $2 ELSE $3 END',[url,0,1]) //return true if url exists else false
+  const isPresent = await client.query('SELECT CASE WHEN EXISTS (SELECT * FROM vote WHERE image_url = $1)THEN $2 ELSE $3 END',[url,1,0]) //return true if url exists else false
   console.log(isPresent.rows[0].case)
   console.log(url)
-  if(isPresent.rows[0].case===0) {
+  if(isPresent.rows[0].case==='0') {
   const[breed,subBreed]=urlExtracting(url)
   const dbres = await client.query('insert into vote (breed, sub_breed, image_url,vote_count) values($1,$2,$3,$4) returning sub_breed',[breed,subBreed,url,0]);
   res.json(dbres.rows);
 } else {
   const[breed,subBreed]=urlExtracting(url)
-  res.json({sub_breed:subBreed})
+  res.json([{sub_breed:subBreed}])
 }
   } 
   );
+  
 
 //Start the server on the given port
 const port = process.env.PORT;
