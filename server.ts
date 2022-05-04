@@ -62,7 +62,13 @@ app.post("/", async (req, res) => {
 }
   } 
   );
-  
+
+app.put("/:id", async (req, res) => {
+    const id = parseInt(req.params.id)
+    
+    const dbres = await client.query('UPDATE vote SET vote_count = (select vote_count from vote where id = $1)+1 WHERE id = $1 returning *',[id] )
+    res.json(dbres.rows[0])
+})
 
 //Start the server on the given port
 const port = process.env.PORT;
