@@ -28,26 +28,40 @@ client.connect();
 
 
 app.get("/", async (req, res) => {
-  const dbres = await client.query('select breed, sum(vote_count) as sumvote_count from vote  group by breed order by sumvote_count desc limit 10');
+  const dbres = await client.query('select sub_breed, sum(vote_count) as sumvote_count from vote  group by sub_breed order by sumvote_count desc limit 10');
 
   res.json(dbres.rows);
 });
+
+function urlExtracting(url:string):string[] {
+  const breedAndSubBreed= url.match(/.*\/(.*)\/(.*)$/)[1]
+  let breed
+  let subBreed
+  if (breedAndSubBreed.includes('-')){
+    breed = breedAndSubBreed.match(/.*(?=-)/)[0]
+    subBreed = breedAndSubBreed.match(/(?<=-).*/)[0]+"-"+breed
+ } else {
+    breed = breedAndSubBreed
+    subBreed = breedAndSubBreed
+ }
+ return [breed,subBreed]
+}
 
 app.post("/", async (req, res) => {
   const url = req.body.message
-  const breedAndSubBreed = url.match(/.*\/(.*)\/(.*)$/)[1]
-  let breed;
-  let subBreed;
-  if (breedAndSubBreed.includes('-')){
-     breed = breedAndSubBreed.match(/.*(?=-)/)[0]
-     subBreed = breedAndSubBreed.match(/(?<=-).*/)[0]
-  } else {
-     breed = breedAndSubBreed
-     subBreed = ''
-  }
-  const dbres = await client.query('insert into vote (breed, sub_breed, image_url,vote_count) values($1,$2,$3,$4)',[breed,subBreed,url,0]);
+  const isPresent = await client.query('SELECT CASE WHEN EXISTS (SELECT * FROM vote WHERE image_url = $1)THEN $2 ELSE $3 END',[url,0,1]) //return true if url exists else false
+  console.log(isPresent.rows[0].case)
+  console.log(url)
+  if(isPresent.rows[0].case===0) {
+  const[breed,subBreed]=urlExtracting(url)
+  const dbres = await client.query('insert into vote (breed, sub_breed, image_url,vote_count) values($1,$2,$3,$4) returning sub_breed',[breed,subBreed,url,0]);
   res.json(dbres.rows);
-});
+} else {
+  const[breed,subBreed]=urlExtracting(url)
+  res.json({sub_breed:subBreed})
+}
+  } 
+  );
 
 //Start the server on the given port
 const port = process.env.PORT;
