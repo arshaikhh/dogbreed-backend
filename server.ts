@@ -21,10 +21,15 @@ const dbConfig = {
 const app = express();
 
 app.use(express.json()); //add body parser to each following route handler
-app.use(cors()) //add CORS support to each following route handler
+// app.use(cors()) //add CORS support to each following route handler
 
 const client = new Client(dbConfig);
 client.connect();
+
+app.use(cors({
+  origin: '*',
+methods: ["GET", "POST","PATCH","PUT"]
+}));
 
 
 app.get("/", async (req, res) => {
@@ -66,7 +71,7 @@ app.post("/", async (req, res) => {
   );
 
 app.put("/:id", async (req, res) => {
- 
+  
     const id = parseInt(req.params.id)
     
     const dbres = await client.query('UPDATE vote SET vote_count = (select vote_count from vote where id = $1)+1 WHERE id = $1 returning *',[id] )
