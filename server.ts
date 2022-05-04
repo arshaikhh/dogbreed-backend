@@ -28,6 +28,7 @@ client.connect();
 
 
 app.get("/", async (req, res) => {
+  res.set('access-control-allow-origin', '*')
   const dbres = await client.query('select sub_breed, sum(vote_count) as sumvote_count from vote  group by sub_breed order by sumvote_count desc limit 10');
 
   res.json(dbres.rows);
@@ -48,6 +49,7 @@ function urlExtracting(url:string):string[] {
 }
 
 app.post("/", async (req, res) => {
+  res.set('access-control-allow-origin', '*')
   const url = req.body.message
   const isPresent = await client.query('SELECT CASE WHEN EXISTS (SELECT * FROM vote WHERE image_url = $1)THEN $2 ELSE $3 END',[url,1,0]) //return true if url exists else false
   console.log(isPresent.rows[0].case)
@@ -64,6 +66,7 @@ app.post("/", async (req, res) => {
   );
 
 app.put("/:id", async (req, res) => {
+  res.set('access-control-allow-origin', '*')
     const id = parseInt(req.params.id)
     
     const dbres = await client.query('UPDATE vote SET vote_count = (select vote_count from vote where id = $1)+1 WHERE id = $1 returning *',[id] )
