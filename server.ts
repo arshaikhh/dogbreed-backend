@@ -55,7 +55,7 @@ function urlExtracting(url:string):string[] {
 }
 
 app.post("/", async (req, res) => {
-  res.set('Access-Control-Allow-Origin', '*')
+  res.set('access-control-allow-origin', '*')
   const url = req.body.message
   const isPresent = await client.query('SELECT CASE WHEN EXISTS (SELECT * FROM vote WHERE image_url = $1)THEN $2 ELSE $3 END',[url,1,0]) //return true if url exists else false
   console.log(isPresent.rows[0].case)
