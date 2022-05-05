@@ -65,6 +65,7 @@ app.post("/", async (req, res) => {
   const[breed,subBreed]=urlExtracting(url)
   const dbres = await client.query('insert into vote (breed, sub_breed, image_url,vote_count) values($1,$2,$3,$4) returning sub_breed',[breed,subBreed,url,0]);
   res.json(dbres.rows);
+  console.log(dbres.rows)
 } else {
   const[breed,subBreed]=urlExtracting(url)
   res.json([{sub_breed:subBreed}])
